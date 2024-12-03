@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 
 mod aoc01;
+mod aoc02;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -11,6 +12,7 @@ fn main() {
     let data = input.unwrap();
     let answer = match challenge.as_str() {
         "01" => aoc01::aoc(data),
+        "02" => aoc02::aoc(data),
         _ => (0, 0),
     };
     println!("{:?}", answer)

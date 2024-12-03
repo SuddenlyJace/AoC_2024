@@ -51,7 +51,6 @@ mod test {
 
     #[test]
     fn test_example() {
-        let example = EXAMPLE.to_string();
-        assert_eq!(aoc(example), (11, 31));
+        assert_eq!(aoc(EXAMPLE.to_string()), (11, 31))
     }
 }
