@@ -4,6 +4,7 @@ pub fn aoc(input: String) -> (i32, i32) {
     let x_search: Vec<i32> = vec![-1, -1, -1, 0, 0, 1, 1, 1];
     let y_search: Vec<i32> = vec![-1, 0, 1, -1, 1, -1, 0, 1];
     let mut count = 0;
+    let mut count_p2 = 0;
 
     let x_len = search.len();
     let y_len = search[0].len();
@@ -16,22 +17,22 @@ pub fn aoc(input: String) -> (i32, i32) {
                         let m;
                         let n;
                         if x_search[d] < 0 {
-                            m = x.checked_sub(1 * w).unwrap_or(9999);
+                            m = x.checked_sub(1 * w).unwrap_or(x_len);
                         } else if x_search[d] == 0{
                             m = x;
                         } else {
-                            m = x.checked_add(1 * w).unwrap_or(9999);
+                            m = x.checked_add(1 * w).unwrap_or(x_len);
                         }
                         if m > x_len-1 {
                             break;
                         }
 
                         if y_search[d] < 0 {
-                            n = y.checked_sub(1 * w).unwrap_or(9999);
+                            n = y.checked_sub(1 * w).unwrap_or(y_len);
                         } else if y_search[d] == 0{
                             n = y;
                         } else {
-                            n = y.checked_add(1 * w).unwrap_or(9999);
+                            n = y.checked_add(1 * w).unwrap_or(y_len);
                         }
                         if n > y_len-1 {
                             break;
@@ -48,10 +49,60 @@ pub fn aoc(input: String) -> (i32, i32) {
                 }
             }
             
+            // Search for the X [MAS]
+            if (x != 0) && (x != x_len-1) && (y != 0) && (y != y_len-1) {
+                if 'A' == search[x][y] {
+                    let mut num_m = 0;
+                    let mut num_s = 0;
+                    if search [x-1][y-1] == 'M' {
+                        if search [x+1][y+1] != 'M' {
+                            num_m += 1;
+                        }
+                    }
+                    if search [x+1][y-1] == 'M' {
+                        if search [x-1][y+1] != 'M' {
+                            num_m += 1;
+                        }
+                    }
+                    if search [x-1][y+1] == 'M' {
+                        if search [x+1][y-1] != 'M' {
+                            num_m += 1;
+                        }
+                    }
+                    if search [x+1][y+1] == 'M' {
+                        if search [x-1][y-1] != 'M' {
+                            num_m += 1;
+                        }
+                    }
+                    if search [x-1][y-1] == 'S' {
+                        if search [x+1][y+1] != 'S' {
+                            num_s += 1;
+                        }
+                    }
+                    if search [x+1][y-1] == 'S' {
+                        if search [x-1][y+1] != 'S' {
+                            num_s += 1;
+                        }
+                    }
+                    if search [x-1][y+1] == 'S' {
+                        if search [x+1][y-1] != 'S' {
+                            num_s += 1;
+                        }
+                    }
+                    if search [x+1][y+1] == 'S' {
+                        if search [x-1][y-1] != 'S' {
+                            num_s += 1;
+                        }
+                    }
+                    if num_m == 2 && num_s == 2 {
+                        count_p2 += 1;
+                    }
+                }
+            }
         }
     }
 
-    (count, 0)
+    (count, count_p2)
 }
 
 #[cfg(test)]
@@ -71,6 +122,6 @@ MXMXAXMASX";
     
     #[test]
     fn test_example() {
-        assert_eq!(aoc(EXAMPLE.to_string()), (18, 0))
+        assert_eq!(aoc(EXAMPLE.to_string()), (18, 9))
     }
 }
