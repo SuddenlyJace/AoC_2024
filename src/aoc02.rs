@@ -1,9 +1,10 @@
+use std::iter::Peekable;
+
 pub fn aoc(input: String) -> (i32, i32) {
     // WE NEED A VECTOR OF VECTORS TO CONTAIN ALL THE REPORTS!!!
     let mut reports: Vec<Vec<u32>> = Vec::new();
     
     // Populate our vectors with our data
-    // Take a line, convert to a String, then parse to u32, then REMOVE RUST (unwrap). Then make vector out of our iterator.
     // PUSH that report into our reports
     let lines = input.lines();
     for line in lines {
@@ -11,8 +12,7 @@ pub fn aoc(input: String) -> (i32, i32) {
             .split(" ")
             .map(|x| x.to_string().parse::<u32>().unwrap())
             .collect();
-        reports
-            .push(report);
+        reports.push(report);
     }
 
     // Time to measure some levels
@@ -20,71 +20,77 @@ pub fn aoc(input: String) -> (i32, i32) {
     let mut dampened_reports: i32 = 0;
 
     for report in reports {
-        let mut optional_previous_level: Option<u32> = None;
-        let mut _optional_dampen_level: Option<u32> = None;
-        let mut optional_increasing: Option<bool> = None;
         let mut safe: bool = true;
         let mut dampen_triggered: bool = false;
-        let report_length = report.len();
 
-        // Loop over each level in report and compare against previous
-        for (i, level) in report.iter().enumerate() {
-            // Check for first iteration
-            if let Some(prev_level) = optional_previous_level {
-                // Check for first level comparison of increasing or decreasing
-                if let Some(increasing) = optional_increasing {
-                    if (prev_level < *level) && (!increasing) {
-                        safe = false
-                    } else if (prev_level > *level) && (increasing) {
-                        safe = false
-                    } else if prev_level == *level {
-                        safe = false
-                    } else {
-                        if prev_level.abs_diff(*level) > 3 {
-                            safe = false
-                        }
-                    }
-                } else {
-                    // New increasing or decreasing state
-                    if prev_level.abs_diff(*level) > 3 {
-                        safe = false
-                    } else if prev_level < *level {
-                        optional_increasing = Some(true);
-                    } else if prev_level > *level {
-                        optional_increasing = Some(false);
-                    } else {
-                        safe = false
-                    }
-                }
-            }
+        // Setup our loop
+        let mut report_iter = report.iter().peekable();
+        let mut prev_level = report_iter.next().unwrap();
+        let level = *(report_iter.peek().unwrap());
+        let mut increasing = is_increasing(prev_level, level);
 
-            if (safe == false) && (dampen_triggered == false) {
-                dampen_triggered = true;
-                safe = true;
-                optional_increasing = None;
-                if report_length == (i+1) {
-                    break;
-                } else if i == 1 {
-                    optional_previous_level = Some(*level);
-                }
-            } else {
-                optional_previous_level = Some(*level);
-                _optional_dampen_level = optional_previous_level;
-            }
+        // Lets check the first element for directional correctness, and drop it if needed.
+        let mut temp_iter = report_iter.clone();
+        let level = temp_iter.next().unwrap();
+        let next_level = temp_iter.next().unwrap();
+
+        if !check(*level, *next_level, increasing) {
+
+        }
+        if increasing != is_increasing(level, next_level) {
+            dampen_triggered = true;
+            increasing = is_increasing(level, next_level);
+            prev_level = level;
+            report_iter.next().unwrap();
         }
 
-        // We should probably reverse all this logic to shrink it... BUT HERE WE ARE
+        // Loop over each level in report and compare against previous
+        for (i, level) in report_iter.enumerate() {
+            if !check(*prev_level, *level, increasing) {
+                safe = false;
+            }
+            if increasing != is_increasing(prev_level, level) {
+                safe = false
+            }
+
+            println!("{} {} {} {} {}", prev_level, level, increasing, safe, dampen_triggered);
+
+            if (safe == false) && (dampen_triggered == false) {
+                println!("PASS");
+                dampen_triggered = true;
+                safe = true;
+            } else {
+                prev_level = level;
+            }
+        }
+        println!("Safe? {}", safe);
+
         if safe && (dampen_triggered == false) {
             safe_reports += 1;
             dampened_reports += 1;
-            //println!("{:?}", report);
         } else if safe {
             dampened_reports += 1;
-           // println!("{:?}", report);
         }
+        println!("{:?}", report);
     }
 
     (safe_reports, dampened_reports)
+}
+
+fn check(prev_level: u32, level: u32, increasing:bool) -> bool {
+    if prev_level.abs_diff(level) > 3 || prev_level.abs_diff(level) < 1 {
+        false
+    } else if (prev_level < level) && (!increasing) {
+        false
+    } else if (prev_level > level) && (increasing) {
+        false
+    } else {
+        true
+    }
+}
+
+fn is_increasing(prev_level: &u32, level: &u32) -> bool {
+    prev_level < level
 }
 
 #[cfg(test)]
@@ -98,7 +104,6 @@ mod test {
 8 6 4 4 1
 1 3 6 7 9";
 
-    #[test]
     fn test_example() {
         assert_eq!(aoc(EXAMPLE.to_string()), (2, 4))
     }

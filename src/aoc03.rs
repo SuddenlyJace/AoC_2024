@@ -19,7 +19,6 @@ pub fn aoc(input: String) -> (i32, i32) {
             }
             sum += int_a * int_b;
         }
-        
     }
 
     (sum, sum_modified)
@@ -38,7 +37,7 @@ mod test {
     }
 
     #[test]
-    fn test_example2() {
+    fn test_example_2() {
         assert_eq!(aoc(EXAMPLE_2.to_string()), (161, 48))
     }
 }
