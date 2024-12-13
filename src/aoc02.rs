@@ -20,48 +20,16 @@ pub fn aoc(input: String) -> (i32, i32) {
     let mut dampened_reports: i32 = 0;
 
     for report in reports {
-        let mut safe: bool = true;
-        let mut dampen_triggered: bool = false;
-
         // Setup our loop
-        let mut report_iter = report.iter().peekable();
-        let mut prev_level = report_iter.next().unwrap();
-        let level = *(report_iter.peek().unwrap());
-        let mut increasing = is_increasing(prev_level, level);
+        let report_iter = report.iter().peekable();
+        let mut reverse_report = report.clone();
+        reverse_report.reverse();
+        let report_reverse_iter = reverse_report.iter().peekable();
 
-        // Lets check the first element for directional correctness, and drop it if needed.
-        let mut temp_iter = report_iter.clone();
-        let level = temp_iter.next().unwrap();
-        let next_level = temp_iter.next().unwrap();
+        let (mut safe, mut dampen_triggered) = check_report(report_iter);
 
-        if !check(*level, *next_level, increasing) {
-
-        }
-        if increasing != is_increasing(level, next_level) {
-            dampen_triggered = true;
-            increasing = is_increasing(level, next_level);
-            prev_level = level;
-            report_iter.next().unwrap();
-        }
-
-        // Loop over each level in report and compare against previous
-        for (i, level) in report_iter.enumerate() {
-            if !check(*prev_level, *level, increasing) {
-                safe = false;
-            }
-            if increasing != is_increasing(prev_level, level) {
-                safe = false
-            }
-
-            println!("{} {} {} {} {}", prev_level, level, increasing, safe, dampen_triggered);
-
-            if (safe == false) && (dampen_triggered == false) {
-                println!("PASS");
-                dampen_triggered = true;
-                safe = true;
-            } else {
-                prev_level = level;
-            }
+        if safe == false {
+            (safe, dampen_triggered) = check_report(report_reverse_iter);
         }
         println!("Safe? {}", safe);
 
@@ -75,6 +43,34 @@ pub fn aoc(input: String) -> (i32, i32) {
     }
 
     (safe_reports, dampened_reports)
+}
+
+fn check_report(mut report_iter: Peekable<std::slice::Iter<'_, u32>>) -> (bool, bool) {
+    let mut safe: bool = true;
+    let mut dampen_triggered: bool = false;
+
+    let mut prev_level = report_iter.next().unwrap();
+    let level = *(report_iter.peek().unwrap());
+    let increasing = is_increasing(prev_level, level);
+
+    // Loop over each level in report and compare against previous
+    for level in report_iter {
+        if increasing != is_increasing(prev_level, &level) {
+            safe = false
+        }
+        if !check(*prev_level, *level, increasing) {
+            safe = false;
+        }
+
+        if (safe == false) && (dampen_triggered == false) {
+            dampen_triggered = true;
+            safe = true;
+        } else {
+            prev_level = &level;
+        }
+    }
+
+    (safe, dampen_triggered)
 }
 
 fn check(prev_level: u32, level: u32, increasing:bool) -> bool {
@@ -103,7 +99,8 @@ mod test {
 1 3 2 4 5
 8 6 4 4 1
 1 3 6 7 9";
-
+    
+    #[test]
     fn test_example() {
         assert_eq!(aoc(EXAMPLE.to_string()), (2, 4))
     }
@@ -118,7 +115,8 @@ mod test {
 9 8 7 6 7
 7 10 8 10 11
 29 28 27 25 26 25 22 20";
-
+    
+    #[test]
     fn test_example_hard() {
         assert_eq!(aoc(HARD_EXAMPLE.to_string()), (0, 10))
     }
